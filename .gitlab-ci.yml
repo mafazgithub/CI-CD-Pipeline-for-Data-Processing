@@ -1,0 +1,37 @@
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  CONFIG_PATH: config/config.yml
+
+before_script:
+  - pip install -r requirements.txt
+
+build:
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker build -t data-processing-app .
+    - docker run data-processing-app pytest
+
+test:
+  image: data-processing-app
+  script:
+    - pytest
+
+deploy_staging:
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker-compose -f docker-compose.staging.yml up -d
+
+deploy_production:
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker-compose -f docker-compose.production.yml up -d
